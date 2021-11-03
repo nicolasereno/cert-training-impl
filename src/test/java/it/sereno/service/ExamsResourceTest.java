@@ -12,8 +12,7 @@ public class ExamsResourceTest {
 
 	@Test
 	public void testreadMethod() {
-		given().queryParam("code", "AAA-000").when().get("/exams/read").then().statusCode(200).body("code",
-				is("AAA-000"));
+		given().when().get("/exams/read/{code}/", "AAA-000").then().statusCode(200).body("code", is("AAA-000"));
 	}
 
 }
