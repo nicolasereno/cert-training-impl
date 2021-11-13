@@ -1,5 +1,7 @@
 package it.sereno.service;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
@@ -19,6 +21,24 @@ public class ExamsResource implements Exams {
 
 	@Inject
 	EntityManager entityManager;
+
+	@Override
+	@Transactional
+	public void create(it.sereno.model.Exam e) {
+		Exam exam = Exam.builder().code(e.getCode()).description(e.getDescription()).build();
+		for (it.sereno.model.Question q : e.getQuestions()) {
+			Question question = Question.builder().code(q.getCode()).text(q.getText()).section(q.getSection())
+					.note(q.getNote()).build();
+			for (it.sereno.model.Answer a : q.getAnswers()) {
+				Answer answer = Answer.builder().code(a.getCode()).text(a.getText()).correct(a.isCorrect())
+						.explanation(a.getExplanation()).build();
+
+				question.getAnswers().add(answer);
+			}
+			exam.getQuestions().add(question);
+		}
+		examRepository.persist(exam);
+	}
 
 	@Override
 	public it.sereno.model.Exam read(String code) {
@@ -41,21 +61,19 @@ public class ExamsResource implements Exams {
 	}
 
 	@Override
-	@Transactional
-	public void create(it.sereno.model.Exam e) {
-		Exam exam = Exam.builder().code(e.getCode()).description(e.getDescription()).build();
-		for (it.sereno.model.Question q : e.getQuestions()) {
-			Question question = Question.builder().code(q.getCode()).text(q.getText()).section(q.getSection())
-					.note(q.getNote()).build();
-			for (it.sereno.model.Answer a : q.getAnswers()) {
-				Answer answer = Answer.builder().code(a.getCode()).text(a.getText()).correct(a.isCorrect())
-						.explanation(a.getExplanation()).build();
+	public List<it.sereno.model.Exam> readAll() {
+		return entityManager
+				.createQuery("SELECT NEW it.sereno.model.Exam(e.code, e.description) FROM Exam e order by e.code ",
+						it.sereno.model.Exam.class)
+				.getResultList();
+	}
 
-				question.getAnswers().add(answer);
-			}
-			exam.getQuestions().add(question);
-		}
-		examRepository.persist(exam);
+	@Override
+	@Transactional
+	public void update(it.sereno.model.Exam exam) {
+		delete(exam.getCode());
+		entityManager.flush();
+		create(exam);
 	}
 
 	@Override
@@ -63,4 +81,5 @@ public class ExamsResource implements Exams {
 	public void delete(String code) {
 		examRepository.delete(examRepository.findByCode(code).orElseThrow());
 	}
+
 }
