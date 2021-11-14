@@ -25,26 +25,7 @@ public class ExamsResource implements Exams {
 	@Override
 	@Transactional
 	public void create(it.sereno.model.Exam e) {
-		Exam exam = Exam.builder().code(e.getCode()).description(e.getDescription()).build();
-		for (it.sereno.model.Question q : e.getQuestions()) {
-			Question question = Question.builder()
-					.code(q.getCode())
-					.text(q.getText())
-					.section(q.getSection())
-					.note(q.getNote())
-					.build();
-			for (it.sereno.model.Answer a : q.getAnswers()) {
-				Answer answer = Answer.builder()
-						.code(a.getCode())
-						.text(a.getText())
-						.correct(a.isCorrect())
-						.note(a.getNote())
-						.build();
-
-				question.getAnswers().add(answer);
-			}
-			exam.getQuestions().add(question);
-		}
+		Exam exam = toEntity(e);
 		examRepository.persist(exam);
 	}
 
@@ -56,6 +37,32 @@ public class ExamsResource implements Exams {
 						Exam.class)
 				.setParameter("code", code)
 				.getSingleResult();
+		return fromEntity(e);
+	}
+
+	@Override
+	public List<it.sereno.model.Exam> readAll() {
+		return entityManager
+				.createQuery("SELECT NEW it.sereno.model.Exam(e.code, e.description) FROM Exam e order by e.code ",
+						it.sereno.model.Exam.class)
+				.getResultList();
+	}
+
+	@Override
+	@Transactional
+	public void update(it.sereno.model.Exam exam) {
+		delete(exam.getCode());
+		entityManager.flush();
+		create(exam);
+	}
+
+	@Override
+	@Transactional
+	public void delete(String code) {
+		examRepository.delete(examRepository.findByCode(code).orElseThrow());
+	}
+
+	private it.sereno.model.Exam fromEntity(Exam e) {
 		it.sereno.model.Exam exam = it.sereno.model.Exam.builder()
 				.code(e.getCode())
 				.description(e.getDescription())
@@ -81,26 +88,27 @@ public class ExamsResource implements Exams {
 		return exam;
 	}
 
-	@Override
-	public List<it.sereno.model.Exam> readAll() {
-		return entityManager
-				.createQuery("SELECT NEW it.sereno.model.Exam(e.code, e.description) FROM Exam e order by e.code ",
-						it.sereno.model.Exam.class)
-				.getResultList();
-	}
-
-	@Override
-	@Transactional
-	public void update(it.sereno.model.Exam exam) {
-		delete(exam.getCode());
-		entityManager.flush();
-		create(exam);
-	}
-
-	@Override
-	@Transactional
-	public void delete(String code) {
-		examRepository.delete(examRepository.findByCode(code).orElseThrow());
+	private Exam toEntity(it.sereno.model.Exam e) {
+		Exam exam = Exam.builder().code(e.getCode()).description(e.getDescription()).build();
+		for (it.sereno.model.Question q : e.getQuestions()) {
+			Question question = Question.builder()
+					.code(q.getCode())
+					.text(q.getText())
+					.section(q.getSection())
+					.note(q.getNote())
+					.build();
+			for (it.sereno.model.Answer a : q.getAnswers()) {
+				Answer answer = Answer.builder()
+						.code(a.getCode())
+						.text(a.getText())
+						.correct(a.isCorrect())
+						.note(a.getNote())
+						.build();
+				question.getAnswers().add(answer);
+			}
+			exam.getQuestions().add(question);
+		}
+		return exam;
 	}
 
 }
