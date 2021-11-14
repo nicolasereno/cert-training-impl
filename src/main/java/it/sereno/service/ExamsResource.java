@@ -27,11 +27,19 @@ public class ExamsResource implements Exams {
 	public void create(it.sereno.model.Exam e) {
 		Exam exam = Exam.builder().code(e.getCode()).description(e.getDescription()).build();
 		for (it.sereno.model.Question q : e.getQuestions()) {
-			Question question = Question.builder().code(q.getCode()).text(q.getText()).section(q.getSection())
-					.note(q.getNote()).build();
+			Question question = Question.builder()
+					.code(q.getCode())
+					.text(q.getText())
+					.section(q.getSection())
+					.note(q.getNote())
+					.build();
 			for (it.sereno.model.Answer a : q.getAnswers()) {
-				Answer answer = Answer.builder().code(a.getCode()).text(a.getText()).correct(a.isCorrect())
-						.explanation(a.getExplanation()).build();
+				Answer answer = Answer.builder()
+						.code(a.getCode())
+						.text(a.getText())
+						.correct(a.isCorrect())
+						.note(a.getNote())
+						.build();
 
 				question.getAnswers().add(answer);
 			}
@@ -42,17 +50,30 @@ public class ExamsResource implements Exams {
 
 	@Override
 	public it.sereno.model.Exam read(String code) {
-		Exam e = entityManager.createQuery(
-				"SELECT e FROM Exam e JOIN FETCH e.questions q JOIN FETCH q.answers a WHERE e.code = :code ",
-				Exam.class).setParameter("code", code).getSingleResult();
-		it.sereno.model.Exam exam = it.sereno.model.Exam.builder().code(e.getCode()).description(e.getDescription())
+		Exam e = entityManager
+				.createQuery(
+						"SELECT e FROM Exam e JOIN FETCH e.questions q JOIN FETCH q.answers a WHERE e.code = :code ",
+						Exam.class)
+				.setParameter("code", code)
+				.getSingleResult();
+		it.sereno.model.Exam exam = it.sereno.model.Exam.builder()
+				.code(e.getCode())
+				.description(e.getDescription())
 				.build();
 		for (Question q : e.getQuestions()) {
-			it.sereno.model.Question question = it.sereno.model.Question.builder().code(q.getCode())
-					.section(q.getSection()).note(q.getNote()).text(q.getText()).build();
+			it.sereno.model.Question question = it.sereno.model.Question.builder()
+					.code(q.getCode())
+					.section(q.getSection())
+					.note(q.getNote())
+					.text(q.getText())
+					.build();
 			for (Answer a : q.getAnswers()) {
-				it.sereno.model.Answer answer = it.sereno.model.Answer.builder().code(a.getCode())
-						.correct(a.isCorrect()).text(a.getText()).explanation(a.getExplanation()).build();
+				it.sereno.model.Answer answer = it.sereno.model.Answer.builder()
+						.code(a.getCode())
+						.correct(a.isCorrect())
+						.text(a.getText())
+						.note(a.getNote())
+						.build();
 				question.getAnswers().add(answer);
 			}
 			exam.getQuestions().add(question);

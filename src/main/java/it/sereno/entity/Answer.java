@@ -27,5 +27,5 @@ public class Answer {
 	private String text;
 	private boolean correct;
 	@Column(length = 2000)
-	private String explanation;
+	private String note;
 }
